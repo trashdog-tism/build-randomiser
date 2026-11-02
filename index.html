@@ -21,7 +21,7 @@ html,body{margin:0}
   --gold:#ceae33;
   --gold-deep:#8e7520;
   --ink:#141005;
-  --solar:#f0631e; --arc:#5bc7f2; --void:#b184c5; --stasis:#4d7dff; --strand:#35d36a; --prism:#e59ad0;
+  --solar:#f0631e; --arc:#5bc7f2; --void:#b184c5; --stasis:#4d7dff; --strand:#35d36a; --prism:#e59ad0; --neutral:#8a92a4; --neutral-2:#6c7486;
   --display:"Chakra Petch", "Segoe UI", system-ui, sans-serif;
   --body:"Barlow", "Segoe UI", system-ui, sans-serif;
   color-scheme:dark;
@@ -150,6 +150,7 @@ details[open] summary{margin-bottom:10px}
           <div class="add">
             <input id="add-name" placeholder="Add an item (e.g. a new exotic)" aria-label="New item name">
             <select id="add-cls" aria-label="Class for new item"><option>Hunter</option><option>Titan</option><option>Warlock</option></select>
+            <select id="add-el" aria-label="Subclass it works with"><option>Neutral</option><option>Solar</option><option>Arc</option><option>Void</option><option>Stasis</option><option>Strand</option><option>Prismatic</option></select>
             <button class="btn" id="add-btn">Add</button>
           </div>
           <p class="note">Untick anything you don't own or never want to see. Changes stay in this browser.</p>
@@ -161,6 +162,7 @@ details[open] summary{margin-bottom:10px}
       </div>
     </aside>
   </div>
+
 </div>
 
 <script>
@@ -174,27 +176,35 @@ const SUBS = {
 const BASE = {sub:[],armor:[],weapon:[]};
 for (const c in SUBS) for (const e in SUBS[c]) BASE.sub.push({name:c+' · '+SUBS[c][e], cls:c, el:e, short:SUBS[c][e]});
 
+/* Armor tags: so Solar, ar Arc, vo Void, st Stasis, sd Strand, pr Prismatic, n Neutral (works on anything). */
+const TAGS = ['Solar','Arc','Void','Stasis','Strand','Prismatic','Neutral'];
+const TC = {so:'Solar',ar:'Arc',vo:'Void',st:'Stasis',sd:'Strand',pr:'Prismatic',n:'Neutral'};
 const ARMOR = {
-Hunter:["Aeon Swift","Assassin's Cowl","Athrys's Embrace","Balance of Power","Blight Ranger","Bombardiers","Caliban's Hand","Celestial Nighthawk","Cyrtarachne's Facade","Foetracer","Fr0st-EE5","Gemini Jester","Graviton Forfeit","Gwisin Vest","Gyrfalcon's Hauberk","Knucklehead Radar","Liar's Handshake","Lucky Pants","Lucky Raspberry","Mask of Bakris","Mechaneer's Tricksleeves","Mothkeeper's Wraps","Oathkeeper","Omnioculus","Ophidia Spathe","Orpheus Rig","Radiant Dance Machines","Raiden Flux","Raiju's Harness","Relativism","Renewal Grasps","Sealed Ahamkara Grasps","Shards of Galanor","Shinobu's Vow","Speedloader Slacks","St0mp-EE5","Star-Eater Scales","The Dragon's Shadow","The Sixth Coyote","Triton Vice","Wormhusk Crown","Young Ahamkara's Spine"],
-Titan:["Abeyant Leap","Actium War Rig","An Insurmountable Skullfort","Antaeus Wards","Armamentarium","Ashen Wake","Cadmus Ridge Lancecap","Citan's Ramparts","Crest of Alpha Lupi","Cuirass of the Falling Star","Doom Fang Pauldron","Dunemarchers","Eternal Warrior","Hallowfire Heart","Hazardous Propulsion","Heart of Inmost Light","Helm of Saint-14","Hoarfrost-Z","Icefall Mantle","Khepri's Horn","Lion Rampant","Loreley Splendor Helm","Mask of the Quiet One","Mk. 44 Stand Asides","No Backup Plans","One-Eyed Mask","Peacekeepers","Peregrine Greaves","Phoenix Cradle","Point-Contact Cannon Brace","Pyrogale Gauntlets","Second Chance","Severance Enclosure","Stoicism","Stronghold","Synthoceps","The Path of Burning Steps","Wishful Ignorance","Wormgod Caress"],
-Warlock:["Aeon Soul","Apotheosis Veil","Astrocyte Verse","Ballidorse Wrathweavers","Boots of the Assembler","Briarbinds","Chromatic Fire","Claws of Ahamkara","Contraverse Hold","Crown of Tempests","Dawn Chorus","Eye of Another World","Fallen Sunstar","Felwinter's Helm","Geomag Stabilizers","Getaway Artist","Karnstein Armlets","Lunafaction Boots","Mantle of Battle Harmony","Mataiodoxía","Necrotic Grip","Nezarec's Sin","Ophidian Aspect","Osmiomancy Gloves","Phoenix Protocol","Promethium Spur","Rain of Fire","Sanguine Alchemy","Secant Filaments","Skull of Dire Ahamkara","Solipsism","Speaker's Sight","Starfire Protocol","Stormdancer's Brace","Sunbracers","Swarmers","The Stag","Transversive Steps","Verity's Brow","Vesper of Radius","Wings of Sacred Dawn","Winter's Guile"]
+Hunter:["Aeon Swift:n","Assassin's Cowl:n","Athrys's Embrace:so,pr","Balance of Power:n","Blight Ranger:ar","Bombardiers:n","Caliban's Hand:so","Celestial Nighthawk:so,pr","Cyrtarachne's Facade:sd,pr","Foetracer:n","Fortune's Favor:n","Fr0st-EE5:n","Gemini Jester:n","Graviton Forfeit:vo,pr","Gwisin Vest:vo","Gyrfalcon's Hauberk:vo,pr","Knucklehead Radar:n","Liar's Handshake:ar,pr","Lucky Pants:n","Lucky Raspberry:ar","Mask of Bakris:ar,st,pr","Mechaneer's Tricksleeves:n","Moirai:sd,pr","Mothkeeper's Wraps:n","Oathkeeper:n","Omnioculus:vo","Ophidia Spathe:so","Orpheus Rig:vo,pr","Radiant Dance Machines:n","Raiden Flux:ar","Raiju's Harness:ar","Relativism:pr","Renewal Grasps:st","Sealed Ahamkara Grasps:n","Shards of Galanor:so,pr","Shinobu's Vow:ar","Speedloader Slacks:n","St0mp-EE5:n","Star-Eater Scales:n","The Dragon's Shadow:n","The Sixth Coyote:n","Triton Vice:so","Wormhusk Crown:n","Young Ahamkara's Spine:so"],
+Titan:["Abeyant Leap:sd,pr","Actium War Rig:n","An Insurmountable Skullfort:ar","Antaeus Wards:n","Armamentarium:n","Arbor Warden:n","Ashen Wake:so","Blastwave Striders:st","Cadmus Ridge Lancecap:st","Citan's Ramparts:n","Crest of Alpha Lupi:n","Cuirass of the Falling Star:ar,pr","Doom Fang Pauldron:vo","Dunemarchers:n","Eternal Warrior:ar","Hallowfire Heart:so","Hazardous Propulsion:n","Heart of Inmost Light:n","Helm of Saint-14:vo","Hoarfrost-Z:st","Icefall Mantle:st","Khepri's Horn:n","Lion Rampant:n","Loreley Splendor Helm:so","Mask of the Quiet One:n","Melas Panoplia:so","Mk. 44 Stand Asides:n","No Backup Plans:n","One-Eyed Mask:n","Peacekeepers:n","Peregrine Greaves:n","Phoenix Cradle:so","Point-Contact Cannon Brace:ar,pr","Praxic Vestment:n","Precious Scars:n","Pyrogale Gauntlets:so","Second Chance:vo,pr","Severance Enclosure:n","Stoicism:pr","Stronghold:n","Synthoceps:n","The Path of Burning Steps:so","Ursa Furiosa:vo","Wishful Ignorance:sd,pr","Wormgod Caress:n"],
+Warlock:["Aeon Soul:n","Apotheosis Veil:n","Astrocyte Verse:n","Ballidorse Wrathweavers:st","Boots of the Assembler:n","Briarbinds:vo","Chromatic Fire:n","Claws of Ahamkara:n","Contraverse Hold:vo","Crown of Tempests:ar,pr","Dawn Chorus:so","Deimosuffusion:sd","Eunoia:so,pr","Eye of Another World:n","Fallen Sunstar:ar","Felwinter's Helm:n","Geomag Stabilizers:ar","Getaway Artist:ar,pr","Karnstein Armlets:n","Lunafaction Boots:n","Mantle of Battle Harmony:n","Mataiodoxía:sd,pr","Necrotic Grip:n","Nezarec's Sin:vo","Ophidian Aspect:n","Osmiomancy Gloves:st","Phoenix Protocol:so","Promethium Spur:so","Rain of Fire:so","Sanguine Alchemy:n","Secant Filaments:vo","Skull of Dire Ahamkara:vo","Solipsism:pr","Speaker's Sight:so","Starfire Protocol:so","Stormdancer's Brace:ar,pr","Sunbracers:so,pr","Swarmers:sd","The Stag:n","Transversive Steps:n","Verity's Brow:n","Vesper of Radius:n","Wings of Sacred Dawn:so","Winter's Guile:so"]
 };
-for (const c in ARMOR) ARMOR[c].forEach(n=>BASE.armor.push({name:n, cls:c}));
+for (const c in ARMOR) ARMOR[c].forEach(s=>{ const i=s.lastIndexOf(':'); let t=s.slice(i+1).replace('?','');
+  BASE.armor.push({name:s.slice(0,i), cls:c, tags:t.split(',').map(x=>TC[x])}); });
 
-["Ace of Spades","Ager's Scepter","Anarchy","Arbalest","Bad Juju","Barrow-Dyad","Bastion","Black Talon","Borealis","Buried Bloodline","Centrifuse","Cerberus+1","Choir of One","Cloudstrike","Coldheart","Collective Obligation","Conditional Finality","Crimson","Cryosthesia 77K","Dead Man's Tale","Dead Messenger","Deathbringer","Delicate Tomb","Deterministic Chaos","Devil's Ruin","Divinity","Dragon's Breath","Duality","Edge of Action","Edge of Concurrence","Edge of Intent","Eriana's Vow","Euphony","Ex Diris","Eyes of Tomorrow","Fighting Lion","Final Warning","Forerunner","Gjallarhorn","Grand Overture","Graviton Lance","Hard Light","Hawkmoon","Heartshadow","Heir Apparent","Hierarchy of Needs","Izanagi's Burden","Jötunn","Khvostov 7G-0X","Le Monarque","Legend of Acrius","Leviathan's Breath","Lord of Wolves","Lorentz Driver","Lumina","Malfeasance","Merciless","Microcosm","MIDA Multi-Tool","Monte Carlo","Necrochasm","One Thousand Voices","Osteo Striga","Outbreak Perfected","Parasite","Polaris Lance","Prometheus Lens","Quicksilver Storm","Rat King","Red Death Reformed","Revision Zero","Riskrunner","Ruinous Effigy","Salvation's Grip","Skyburner's Oath","Sleeper Simulant","Slayer's Fang","Still Hunt","Sturm","SUROS Regime","Sunshot","Sweet Business","Symmetry","Tarrabah","Telesto","Tessellation","The Chaperone","The Colony","The Fourth Horseman","The Huckleberry","The Jade Rabbit","The Lament","The Last Word","The Manticore","The Navigator","The Prospector","The Queenbreaker","The Wardcliff Coil","Thorn","Thunderlord","Ticuu's Divination","Tommy's Matchbook","Tractor Cannon","Traveler's Chosen","Trinity Ghoul","Truth","Two-Tailed Fox","Touch of Malice","Verglas Curve","Vex Mythoclast","Vexcalibur","Vigilance Wing","Wavesplitter","Whisper of the Worm","Wicked Implement","Winterbite","Wish-Ender","Wish-Keeper","Witherhoard","Worldline Zero","Xenophage"]
+["Ace of Spades","Ager's Scepter","Anarchy","Arbalest","Bad Juju","Barrow-Dyad","Bastion","Black Talon","Borealis","Buried Bloodline","Centrifuse","Cerberus+1","Choir of One","Cloudstrike","Coldheart","Collective Obligation","Conditional Finality","Crimson","Cryosthesia 77K","Dead Man's Tale","Dead Messenger","Deathbringer","Delicate Tomb","Deterministic Chaos","Devil's Ruin","Divinity","Dragon's Breath","Duality","Edge of Action","Edge of Concurrence","Edge of Intent","Eriana's Vow","Euphony","Ex Diris","Eyes of Tomorrow","Fighting Lion","Final Warning","Forerunner","Gjallarhorn","Grand Overture","Graviton Lance","Hard Light","Hawkmoon","Heartshadow","Heir Apparent","Hierarchy of Needs","Izanagi's Burden","Jötunn","Khvostov 7G-0X","Le Monarque","Legend of Acrius","Leviathan's Breath","Lord of Wolves","Lorentz Driver","Lumina","Malfeasance","Merciless","Microcosm","MIDA Multi-Tool","Monte Carlo","Necrochasm","One Thousand Voices","Osteo Striga","Outbreak Perfected","Parasite","Polaris Lance","Prometheus Lens","Quicksilver Storm","Rat King","Red Death Reformed","Revision Zero","Riskrunner","Ruinous Effigy","Salvation's Grip","Skyburner's Oath","Sleeper Simulant","Slayer's Fang","Still Hunt","Sturm","SUROS Regime","Sunshot","Sweet Business","Symmetry","Tarrabah","Telesto","Tessellation","The Chaperone","The Colony","The Fourth Horseman","The Huckleberry","The Jade Rabbit","The Lament","The Last Word","The Manticore","The Navigator","The Prospector","The Queenbreaker","The Wardcliff Coil","Thorn","Thunderlord","Ticuu's Divination","Tommy's Matchbook","Tractor Cannon","Traveler's Chosen","Trinity Ghoul","Truth","Two-Tailed Fox","Touch of Malice","Verglas Curve","Vex Mythoclast","Vexcalibur","Vigilance Wing","Wavesplitter","Whisper of the Worm","Wicked Implement","Winterbite","Wish-Ender","Wish-Keeper","Witherhoard","Worldline Zero","Xenophage","Turncoat","Cull's Shadow","Praxic Blade","Service of Luzaku","Heirloom"]
   .filter(Boolean).forEach(n=>BASE.weapon.push({name:n}));
 
 const LABEL = {sub:'Subclass',armor:'Exotic armor',weapon:'Exotic weapon'};
 const KEY='gbr-v1';
-let S = {wheel:'sub', armorCls:'match', off:[], custom:{sub:[],armor:[],weapon:[]}, build:{sub:null,armor:null,weapon:null}, anchor:null, hist:[]};
+let S = {wheel:'sub', armorCls:'match', neutral:true, tags:{}, off:[], custom:{sub:[],armor:[],weapon:[]}, build:{sub:null,armor:null,weapon:null}, anchor:null, hist:[]};
 try{ const raw=localStorage.getItem(KEY); if(raw){ const p=JSON.parse(raw); S=Object.assign(S,p); S.custom=Object.assign({sub:[],armor:[],weapon:[]},p.custom||{}); S.build=Object.assign({sub:null,armor:null,weapon:null},p.build||{}); } }catch(e){}
 let off = new Set(S.off);
+S.tags={};
 function save(){ S.off=[...off]; try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 
 const $=id=>document.getElementById(id);
 const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 const k=(w,it)=>w+'|'+(it.cls||'')+'|'+it.name;
-const all=w=>BASE[w].concat(S.custom[w].map(x=>Object.assign({custom:true},x)));
+const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+const all=w=>{ const seen=new Set(BASE[w].map(b=>norm(b.name)+'|'+(b.cls||'')));
+  return BASE[w].concat(S.custom[w].filter(x=>!seen.has(norm(x.name)+'|'+(x.cls||''))).map(x=>Object.assign({custom:true},x))); };
+const tagsOf=it=>it.tags || ['Neutral'];
 
 function armorClass(){
   if (S.armorCls==='match') return S.build.sub ? S.build.sub.cls : null;
@@ -203,7 +213,11 @@ function armorClass(){
 }
 function active(w){
   let items = all(w).filter(it=>!off.has(k(w,it)));
-  if (w==='armor'){ const c=armorClass(); if(c) items=items.filter(it=>it.cls===c); }
+  if (w==='armor'){ const c=armorClass(); if(c) items=items.filter(it=>it.cls===c);
+    const el = (S.armorCls==='match' && S.build.sub) ? S.build.sub.el : null;
+    if (el) items=items.filter(it=>{ const t=tagsOf(it); return t.includes(el) || (S.neutral && t.includes('Neutral')); });
+    else if (!S.neutral) items=items.filter(it=>!(tagsOf(it).length===1 && tagsOf(it)[0]==='Neutral'));
+  }
   return items;
 }
 
@@ -217,7 +231,9 @@ function fit(){
 }
 function sliceColor(w,it,i){
   if (w==='sub') return css(EL[it.el]);
-  if (w==='armor') return i%2 ? css('--gold-deep') : css('--gold');
+  if (w==='armor'){ const t=tagsOf(it), el=S.build.sub&&S.armorCls==='match'?S.build.sub.el:null;
+    const pick = el && t.includes(el) ? el : t[0];
+    return pick==='Neutral' ? (i%2?css('--neutral-2'):css('--neutral')) : css(EL[pick]); }
   const pal=['#ceae33','#2b3447','#a68a28','#1f2636'];
   return pal[i%4];
 }
@@ -314,10 +330,12 @@ function renderFilters(){
     p.textContent = S.wheel==='sub' ? '3 classes × 6 subclasses' : 'Every slot, every class';
     f.appendChild(p); return;
   }
-  const subCls = S.build.sub ? S.build.sub.cls : null;
-  const opts=[['match', subCls ? 'Match subclass ('+subCls+')' : 'Match subclass roll'],['any','Any class'],['Hunter','Hunter'],['Titan','Titan'],['Warlock','Warlock']];
+  const sb = S.build.sub;
+  const opts=[['match', sb ? 'Match '+sb.cls+' '+sb.short : 'Match subclass roll'],['any','Any class'],['Hunter','Hunter'],['Titan','Titan'],['Warlock','Warlock']];
   opts.forEach(([v,l])=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=l; b.setAttribute('aria-pressed', S.armorCls===v);
     b.onclick=()=>{ if(spinning)return; S.armorCls=v; save(); renderFilters(); draw(); readout(); renderPool(); }; f.appendChild(b); });
+  const nb=document.createElement('button'); nb.className='chip'; nb.textContent='Include neutral'; nb.setAttribute('aria-pressed', S.neutral);
+  nb.onclick=()=>{ if(spinning)return; S.neutral=!S.neutral; save(); renderFilters(); draw(); readout(); }; f.appendChild(nb);
 }
 function renderSheet(){
   const el=$('slots'); el.innerHTML='';
@@ -340,7 +358,7 @@ function renderPool(){
   const w=S.wheel, q=$('pool-q').value.trim().toLowerCase();
   const list=all(w); const on=list.filter(it=>!off.has(k(w,it))).length;
   $('pool-sum').textContent='Edit '+LABEL[w].toLowerCase()+' pool ('+on+'/'+list.length+' on)';
-  $('add-cls').hidden = w!=='armor';
+  $('add-cls').hidden = w!=='armor'; $('add-el').hidden = w!=='armor';
   const box=$('pool-list'); box.innerHTML='';
   list.filter(it=>!q || it.name.toLowerCase().includes(q))
       .sort((a,b)=>(a.cls||'').localeCompare(b.cls||'')||a.name.localeCompare(b.name))
@@ -371,7 +389,7 @@ function addItem(){
   const name=$('add-name').value.trim(); if(!name) return;
   const w=S.wheel;
   if(w==='sub'){ toast('Subclass wheel is fixed — use the tick boxes'); return; }
-  const it={name}; if(w==='armor') it.cls=$('add-cls').value;
+  const it={name}; if(w==='armor'){ it.cls=$('add-cls').value; it.tags=[$('add-el').value]; }
   if(all(w).some(x=>x.name.toLowerCase()===name.toLowerCase() && (x.cls||'')===(it.cls||''))){ toast('Already in the pool'); return; }
   S.custom[w].push(it); $('add-name').value=''; save(); renderPool(); draw(); readout(); toast('Added '+name);
 }
