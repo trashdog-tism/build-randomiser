@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Guardian Build Roulette</title>
+<title>Build Randomiser</title>
 <style>
 /* Layout: wheel stage on the left (tabs → wheel → result), build sheet + pool editor on the right; stacks on phones. Deliberately dark-only. */
 html,body{margin:0}
@@ -21,7 +21,7 @@ html,body{margin:0}
   --gold:#ceae33;
   --gold-deep:#8e7520;
   --ink:#141005;
-  --solar:#f0631e; --arc:#5bc7f2; --void:#b184c5; --stasis:#4d7dff; --strand:#35d36a; --prism:#e59ad0; --neutral:#8a92a4; --neutral-2:#6c7486;
+  --solar:#f0631e; --arc:#5bc7f2; --void:#b184c5; --stasis:#4d7dff; --strand:#35d36a; --prism:#e59ad0; --kinetic:#dcdfe6; --neutral:#8a92a4; --neutral-2:#6c7486;
   --display:"Chakra Petch", "Segoe UI", system-ui, sans-serif;
   --body:"Barlow", "Segoe UI", system-ui, sans-serif;
   color-scheme:dark;
@@ -101,8 +101,7 @@ details[open] summary{margin-bottom:10px}
 
 <div class="wrap">
   <header>
-    <h1>Guardian <span>Build Roulette</span></h1>
-    <p class="tag">Pick a wheel. Spin it. Build around whatever lands.</p>
+    <h1>Build <span>Randomiser</span></h1>
   </header>
 
   <div class="grid">
@@ -167,14 +166,22 @@ details[open] summary{margin-bottom:10px}
 
 <script>
 (function(){
-const EL = {Solar:'--solar',Arc:'--arc',Void:'--void',Stasis:'--stasis',Strand:'--strand',Prismatic:'--prism'};
+const EL = {Solar:'--solar',Arc:'--arc',Void:'--void',Stasis:'--stasis',Strand:'--strand',Prismatic:'--prism',Kinetic:'--kinetic'};
+/* Weapon damage types; anything not listed is Kinetic. Borealis and Hard Light can swap element, listed by default. */
+const WEL = {};
+[["Solar",["Borealis","Devil's Ruin","Dragon's Breath","Edge of Intent","Eriana's Vow","Eyes of Tomorrow","Gjallarhorn","Heir Apparent","Heirloom","Hierarchy of Needs","Jötunn","Lord of Wolves","Merciless","One Thousand Voices","Parasite","Polaris Lance","Prometheus Lens","Skyburner's Oath","Sleeper Simulant","Still Hunt","Sunshot","The Lament","Ticuu's Divination","Tommy's Matchbook","Truth","Vex Mythoclast","Whisper of the Worm","Xenophage"]],
+ ["Arc",["Anarchy","Centrifuse","Cloudstrike","Coldheart","Delicate Tomb","Divinity","Edge of Concurrence","Ex Diris","Grand Overture","Hard Light","Legend of Acrius","Riskrunner","Symmetry","The Prospector","The Queenbreaker","The Wardcliff Coil","Thunderlord","Trinity Ghoul","Worldline Zero"]],
+ ["Void",["Black Talon","Buried Bloodline","Choir of One","Collective Obligation","Dead Messenger","Deathbringer","Deterministic Chaos","Edge of Action","Fighting Lion","Graviton Lance","Heartshadow","Le Monarque","Leviathan's Breath","Lorentz Driver","Ruinous Effigy","Telesto","The Colony","The Manticore","Tractor Cannon","Turncoat","Two-Tailed Fox","Vexcalibur","Wavesplitter"]],
+ ["Stasis",["Ager's Scepter","Conditional Finality","Cryosthesia 77K","Salvation's Grip","Verglas Curve","Wicked Implement","Winterbite"]],
+ ["Strand",["Barrow-Dyad","Euphony","Final Warning","Service of Luzaku","The Navigator","Wish-Keeper"]]
+].forEach(([e,ns])=>ns.forEach(n=>WEL[n]=e));
 const SUBS = {
   Hunter:{Solar:'Gunslinger',Arc:'Arcstrider',Void:'Nightstalker',Stasis:'Revenant',Strand:'Threadrunner',Prismatic:'Prismatic'},
   Titan:{Solar:'Sunbreaker',Arc:'Striker',Void:'Sentinel',Stasis:'Behemoth',Strand:'Berserker',Prismatic:'Prismatic'},
   Warlock:{Solar:'Dawnblade',Arc:'Stormcaller',Void:'Voidwalker',Stasis:'Shadebinder',Strand:'Broodweaver',Prismatic:'Prismatic'}
 };
 const BASE = {sub:[],armor:[],weapon:[]};
-for (const c in SUBS) for (const e in SUBS[c]) BASE.sub.push({name:c+' · '+SUBS[c][e], cls:c, el:e, short:SUBS[c][e]});
+for (const c in SUBS) for (const e in SUBS[c]) BASE.sub.push({name:e+' '+c, cls:c, el:e, short:e});
 
 /* Armor tags: so Solar, ar Arc, vo Void, st Stasis, sd Strand, pr Prismatic, n Neutral (works on anything). */
 const TAGS = ['Solar','Arc','Void','Stasis','Strand','Prismatic','Neutral'];
@@ -188,12 +195,17 @@ for (const c in ARMOR) ARMOR[c].forEach(s=>{ const i=s.lastIndexOf(':'); let t=s
   BASE.armor.push({name:s.slice(0,i), cls:c, tags:t.split(',').map(x=>TC[x])}); });
 
 ["Ace of Spades","Ager's Scepter","Anarchy","Arbalest","Bad Juju","Barrow-Dyad","Bastion","Black Talon","Borealis","Buried Bloodline","Centrifuse","Cerberus+1","Choir of One","Cloudstrike","Coldheart","Collective Obligation","Conditional Finality","Crimson","Cryosthesia 77K","Dead Man's Tale","Dead Messenger","Deathbringer","Delicate Tomb","Deterministic Chaos","Devil's Ruin","Divinity","Dragon's Breath","Duality","Edge of Action","Edge of Concurrence","Edge of Intent","Eriana's Vow","Euphony","Ex Diris","Eyes of Tomorrow","Fighting Lion","Final Warning","Forerunner","Gjallarhorn","Grand Overture","Graviton Lance","Hard Light","Hawkmoon","Heartshadow","Heir Apparent","Hierarchy of Needs","Izanagi's Burden","Jötunn","Khvostov 7G-0X","Le Monarque","Legend of Acrius","Leviathan's Breath","Lord of Wolves","Lorentz Driver","Lumina","Malfeasance","Merciless","Microcosm","MIDA Multi-Tool","Monte Carlo","Necrochasm","One Thousand Voices","Osteo Striga","Outbreak Perfected","Parasite","Polaris Lance","Prometheus Lens","Quicksilver Storm","Rat King","Red Death Reformed","Revision Zero","Riskrunner","Ruinous Effigy","Salvation's Grip","Skyburner's Oath","Sleeper Simulant","Slayer's Fang","Still Hunt","Sturm","SUROS Regime","Sunshot","Sweet Business","Symmetry","Tarrabah","Telesto","Tessellation","The Chaperone","The Colony","The Fourth Horseman","The Huckleberry","The Jade Rabbit","The Lament","The Last Word","The Manticore","The Navigator","The Prospector","The Queenbreaker","The Wardcliff Coil","Thorn","Thunderlord","Ticuu's Divination","Tommy's Matchbook","Tractor Cannon","Traveler's Chosen","Trinity Ghoul","Truth","Two-Tailed Fox","Touch of Malice","Verglas Curve","Vex Mythoclast","Vexcalibur","Vigilance Wing","Wavesplitter","Whisper of the Worm","Wicked Implement","Winterbite","Wish-Ender","Wish-Keeper","Witherhoard","Worldline Zero","Xenophage","Turncoat","Cull's Shadow","Praxic Blade","Service of Luzaku","Heirloom"]
-  .filter(Boolean).forEach(n=>BASE.weapon.push({name:n}));
+  .filter(Boolean).forEach(n=>BASE.weapon.push({name:n, el:WEL[n]||'Kinetic'}));
 
 const LABEL = {sub:'Subclass',armor:'Exotic armor',weapon:'Exotic weapon'};
 const KEY='gbr-v1';
 let S = {wheel:'sub', armorCls:'match', neutral:true, tags:{}, off:[], custom:{sub:[],armor:[],weapon:[]}, build:{sub:null,armor:null,weapon:null}, anchor:null, hist:[]};
 try{ const raw=localStorage.getItem(KEY); if(raw){ const p=JSON.parse(raw); S=Object.assign(S,p); S.custom=Object.assign({sub:[],armor:[],weapon:[]},p.custom||{}); S.build=Object.assign({sub:null,armor:null,weapon:null},p.build||{}); } }catch(e){}
+/* migrate from official subclass names to plain element names */
+try{ const OFF2={}, NM={}; for(const c in SUBS) for(const e in SUBS[c]){ [c+' · '+SUBS[c][e], c+' · '+e].forEach(o=>{ NM[o]=e+' '+c; OFF2['sub|'+c+'|'+o]='sub|'+c+'|'+e+' '+c; }); }
+  S.off=(S.off||[]).map(x=>OFF2[x]||x);
+  if(S.build.sub && S.build.sub.el){ S.build.sub.short=S.build.sub.el; S.build.sub.name=S.build.sub.el+' '+S.build.sub.cls; }
+  (S.hist||[]).forEach(h=>{ if(h.w==='sub' && NM[h.name]) h.name=NM[h.name]; }); }catch(e){}
 let off = new Set(S.off);
 S.tags={};
 function save(){ S.off=[...off]; try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
@@ -234,8 +246,7 @@ function sliceColor(w,it,i){
   if (w==='armor'){ const t=tagsOf(it), el=S.build.sub&&S.armorCls==='match'?S.build.sub.el:null;
     const pick = el && t.includes(el) ? el : t[0];
     return pick==='Neutral' ? (i%2?css('--neutral-2'):css('--neutral')) : css(EL[pick]); }
-  const pal=['#ceae33','#2b3447','#a68a28','#1f2636'];
-  return pal[i%4];
+  return css(EL[it.el||'Kinetic']);
 }
 function textOn(hex){
   const h=hex.replace('#',''); const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16);
@@ -251,10 +262,10 @@ function draw(){
     const a0=rot+i*s-Math.PI/2, col=sliceColor(S.wheel,items[i],i);
     ctx.beginPath(); ctx.moveTo(c,c); ctx.arc(c,c,R,a0,a0+s); ctx.closePath();
     ctx.fillStyle=col; ctx.fill();
-    if(n<=60){ ctx.strokeStyle='rgba(12,15,22,.55)'; ctx.lineWidth=1; ctx.stroke(); }
+    ctx.strokeStyle='rgba(12,15,22,.6)'; ctx.lineWidth=n>60?0.6:1; ctx.stroke();
     if(showLabels){
       ctx.save(); ctx.translate(c,c); ctx.rotate(a0+s/2);
-      const label = S.wheel==='sub' ? items[i].cls+' · '+items[i].short : items[i].name;
+      const label = items[i].name;
       let f=Math.min(15, Math.max(8, s*R*0.55)); const maxL=R*0.66;
       ctx.font='600 '+f+'px '+css('--display');
       while(ctx.measureText(label).width>maxL && f>8){ f-=0.5; ctx.font='600 '+f+'px '+css('--display'); }
@@ -301,9 +312,9 @@ function spin(){
   requestAnimationFrame(frame);
 }
 function metaFor(w,it){
-  if(w==='sub') return it.el+' · '+it.cls;
+  if(w==='sub') return 'Subclass';
   if(w==='armor') return it.cls+' exotic';
-  return 'Exotic weapon';
+  return (it.el||'Kinetic')+' exotic weapon';
 }
 function land(w,it){
   S.build[w]={name:it.name, cls:it.cls||null, el:it.el||null, short:it.short||null};
@@ -317,7 +328,7 @@ function showResult(){
   $('r-eye').textContent=LABEL[S.wheel];
   if(!b){ box.classList.add('empty'); $('r-name').textContent='Nothing rolled yet'; $('r-meta').textContent='Hit Spin to roll this wheel'; return; }
   box.classList.remove('empty');
-  $('r-name').textContent = S.wheel==='sub' ? b.cls+' '+b.short : b.name;
+  $('r-name').textContent = b.name;
   $('r-meta').textContent = metaFor(S.wheel,b);
 }
 
@@ -331,7 +342,7 @@ function renderFilters(){
     f.appendChild(p); return;
   }
   const sb = S.build.sub;
-  const opts=[['match', sb ? 'Match '+sb.cls+' '+sb.short : 'Match subclass roll'],['any','Any class'],['Hunter','Hunter'],['Titan','Titan'],['Warlock','Warlock']];
+  const opts=[['match', sb ? 'Match '+sb.name : 'Match subclass roll'],['any','Any class'],['Hunter','Hunter'],['Titan','Titan'],['Warlock','Warlock']];
   opts.forEach(([v,l])=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=l; b.setAttribute('aria-pressed', S.armorCls===v);
     b.onclick=()=>{ if(spinning)return; S.armorCls=v; save(); renderFilters(); draw(); readout(); renderPool(); }; f.appendChild(b); });
   const nb=document.createElement('button'); nb.className='chip'; nb.textContent='Include neutral'; nb.setAttribute('aria-pressed', S.neutral);
@@ -341,12 +352,12 @@ function renderSheet(){
   const el=$('slots'); el.innerHTML='';
   ['sub','armor','weapon'].forEach(w=>{
     const b=S.build[w], d=document.createElement('div'); d.className='slot'+(S.anchor===w?' anchor':'');
-    const v = b ? (w==='sub' ? b.cls+' '+b.short+'<small>'+b.el+'</small>' : esc(b.name)+(b.cls?'<small>'+b.cls+'</small>':'')) : 'Not rolled';
+    const v = b ? (w==='sub' ? esc(b.name) : esc(b.name)+(b.cls?'<small>'+b.cls+'</small>':'')) : 'Not rolled';
     d.innerHTML='<div class="k">'+LABEL[w]+'</div><div class="v'+(b?'':' none')+'">'+v+'</div>';
     el.appendChild(d);
   });
   const a=S.anchor && S.build[S.anchor];
-  $('anchor-note').innerHTML = a ? 'Build around <b>'+esc(S.anchor==='sub'?a.cls+' '+a.short:a.name)+'</b>. Fill the other slots however you like, or spin them too.' : 'Spin any wheel. The latest roll becomes the build’s anchor.';
+  $('anchor-note').innerHTML = a ? 'Build around <b>'+esc(a.name)+'</b>. Fill the other slots however you like, or spin them too.' : 'Spin any wheel. The latest roll becomes the build’s anchor.';
 }
 function renderHist(){
   const ul=$('hist'); ul.innerHTML='';
@@ -358,7 +369,10 @@ function renderPool(){
   const w=S.wheel, q=$('pool-q').value.trim().toLowerCase();
   const list=all(w); const on=list.filter(it=>!off.has(k(w,it))).length;
   $('pool-sum').textContent='Edit '+LABEL[w].toLowerCase()+' pool ('+on+'/'+list.length+' on)';
-  $('add-cls').hidden = w!=='armor'; $('add-el').hidden = w!=='armor';
+  $('add-cls').hidden = w!=='armor'; $('add-el').hidden = w==='sub';
+  const opts = w==='armor' ? ['Neutral','Solar','Arc','Void','Stasis','Strand','Prismatic'] : ['Kinetic','Solar','Arc','Void','Stasis','Strand'];
+  if($('add-el').dataset.w!==w){ $('add-el').innerHTML=opts.map(o=>'<option>'+o+'</option>').join(''); $('add-el').dataset.w=w;
+    $('add-el').setAttribute('aria-label', w==='armor'?'Subclass it works with':'Damage type'); }
   const box=$('pool-list'); box.innerHTML='';
   list.filter(it=>!q || it.name.toLowerCase().includes(q))
       .sort((a,b)=>(a.cls||'').localeCompare(b.cls||'')||a.name.localeCompare(b.name))
@@ -389,7 +403,7 @@ function addItem(){
   const name=$('add-name').value.trim(); if(!name) return;
   const w=S.wheel;
   if(w==='sub'){ toast('Subclass wheel is fixed — use the tick boxes'); return; }
-  const it={name}; if(w==='armor'){ it.cls=$('add-cls').value; it.tags=[$('add-el').value]; }
+  const it={name}; if(w==='armor'){ it.cls=$('add-cls').value; it.tags=[$('add-el').value]; } else it.el=$('add-el').value;
   if(all(w).some(x=>x.name.toLowerCase()===name.toLowerCase() && (x.cls||'')===(it.cls||''))){ toast('Already in the pool'); return; }
   S.custom[w].push(it); $('add-name').value=''; save(); renderPool(); draw(); readout(); toast('Added '+name);
 }
@@ -397,7 +411,7 @@ $('clear').onclick=()=>{ S.build={sub:null,armor:null,weapon:null}; S.anchor=nul
 $('hist-clear').onclick=()=>{ S.hist=[]; save(); renderHist(); };
 $('copy').onclick=()=>{
   const b=S.build;
-  const txt=['Subclass: '+(b.sub?b.sub.cls+' '+b.sub.short:'—'),'Exotic armor: '+(b.armor?b.armor.name:'—'),'Exotic weapon: '+(b.weapon?b.weapon.name:'—')].join(' | ');
+  const txt=['Subclass: '+(b.sub?b.sub.name:'—'),'Exotic armor: '+(b.armor?b.armor.name:'—'),'Exotic weapon: '+(b.weapon?b.weapon.name:'—')].join(' | ');
   const done=()=>toast('Build copied');
   try{ navigator.clipboard.writeText(txt).then(done,()=>fallback(txt)); }catch(e){ fallback(txt); }
 };
